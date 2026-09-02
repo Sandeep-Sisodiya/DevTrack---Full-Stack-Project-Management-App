@@ -1,0 +1,33 @@
+# Docker Compose configuration for DevTrack
+# Run: docker compose up --build
+# Stop: docker compose down
+
+services:
+  # Node.js backend API
+  backend:
+    build: ./backend
+    container_name: devtrack-api
+    ports:
+      - "5000:5000"
+    environment:
+      - PORT=5000
+      # Use the Docker Compose service name 'mongodb' instead of localhost
+      - MONGODB_URI=mongodb://mongodb:27017/devtrack
+      - JWT_SECRET=change-this-to-a-secure-secret-in-production
+    depends_on:
+      - mongodb
+    restart: unless-stopped
+
+  # MongoDB database
+  mongodb:
+    image: mongo:7
+    container_name: devtrack-mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      # Persist database data across container restarts
+      - mongodb_data:/data/db
+    restart: unless-stopped
+
+volumes:
+  mongodb_data:
