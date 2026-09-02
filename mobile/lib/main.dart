@@ -23,7 +23,11 @@ import 'screens/project_detail_screen.dart';
 import 'screens/create_task_screen.dart';
 import 'screens/edit_task_screen.dart';
 
-void main() {
+import 'config/api_config.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await ApiConfig.init();
   runApp(const DevTrackApp());
 }
 

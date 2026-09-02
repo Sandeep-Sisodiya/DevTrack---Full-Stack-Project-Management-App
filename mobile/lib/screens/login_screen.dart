@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 import '../config/theme.dart';
 import '../providers/auth_provider.dart';
 
+import '../widgets/server_settings_dialog.dart';
+
 /// Login screen with email/password form and validation.
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -50,10 +52,21 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.dns_outlined, color: AppTheme.textSecondary),
+            tooltip: 'Server Settings',
+            onPressed: () => ServerSettingsDialog.show(context),
+          ),
+        ],
+      ),
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
+            padding: const EdgeInsets.symmetric(horizontal: 24),
             child: Form(
               key: _formKey,
               child: Column(
