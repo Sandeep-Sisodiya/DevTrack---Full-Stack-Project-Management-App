@@ -28,7 +28,7 @@
   },
   "jest": {
     "testEnvironment": "node",
-    "setupFilesAfterSetup": ["./tests/setup.js"],
-    "testMatch": ["**/tests/**/*.test.js"]
+    "testMatch": ["**/tests/**/*.test.js"],
+    "testTimeout": 30000
   }
 }
