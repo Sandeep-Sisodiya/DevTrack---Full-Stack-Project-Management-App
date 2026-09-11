@@ -36,7 +36,7 @@ class DevTrackApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Create a single shared ApiService instance
+    // Create a single shared ApiService instance now
     final apiService = ApiService();
 
     return MultiProvider(

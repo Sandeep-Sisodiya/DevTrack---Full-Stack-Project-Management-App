@@ -97,6 +97,14 @@ class _ServerSettingsDialogState extends State<ServerSettingsDialog> {
               runSpacing: 4,
               children: [
                 ActionChip(
+                  label: const Text('Local Wi-Fi (192.168.1.6)', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                  onPressed: () {
+                    setState(() {
+                      _urlController.text = 'http://192.168.1.6:5000/api';
+                    });
+                  },
+                ),
+                ActionChip(
                   label: const Text('Android Emulator (10.0.2.2)', style: TextStyle(fontSize: 11)),
                   onPressed: () {
                     setState(() {

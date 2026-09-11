@@ -4,8 +4,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 class ApiConfig {
   static const String _serverUrlKey = 'custom_server_url';
   
-  // Default URL: Android emulator loopback to host machine localhost:5000
-  static const String defaultUrl = 'http://10.0.2.2:5000/api';
+  // Default URL configured for real phone on local Wi-Fi (192.168.1.6:5000)
+  static const String defaultUrl = 'http://192.168.1.6:5000/api';
   
   static String _currentBaseUrl = defaultUrl;
 
