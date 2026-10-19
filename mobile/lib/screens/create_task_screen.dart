@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import '../models/task.dart';
 import '../providers/task_provider.dart';
 
-/// Screen for creating a new task within a project.
+/// Screen for creating a new task within a project with checklist and tags.
 class CreateTaskScreen extends StatefulWidget {
   final String projectId;
 
@@ -17,6 +17,11 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
   final _formKey = GlobalKey<FormState>();
   final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
+  final _hoursController = TextEditingController();
+  final _tagsController = TextEditingController();
+  final _subtaskController = TextEditingController();
+
+  final List<String> _subtasks = [];
   String _priority = 'Medium';
   String _status = 'Todo';
   DateTime? _dueDate;
@@ -26,6 +31,9 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
   void dispose() {
     _titleController.dispose();
     _descriptionController.dispose();
+    _hoursController.dispose();
+    _tagsController.dispose();
+    _subtaskController.dispose();
     super.dispose();
   }
 
@@ -41,16 +49,41 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
     }
   }
 
+  void _addSubtask() {
+    final text = _subtaskController.text.trim();
+    if (text.isNotEmpty) {
+      setState(() {
+        _subtasks.add(text);
+        _subtaskController.clear();
+      });
+    }
+  }
+
+  void _removeSubtask(int index) {
+    setState(() {
+      _subtasks.removeAt(index);
+    });
+  }
+
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isSubmitting = true);
+
+    final tags = _tagsController.text
+        .split(',')
+        .map((t) => t.trim())
+        .where((t) => t.isNotEmpty)
+        .toList();
 
     final data = <String, dynamic>{
       'title': _titleController.text.trim(),
       'description': _descriptionController.text.trim(),
       'priority': _priority,
       'status': _status,
+      'estimatedHours': double.tryParse(_hoursController.text.trim()) ?? 0.0,
+      'tags': tags,
+      'subtasks': _subtasks.map((s) => {'title': s, 'isCompleted': false}).toList(),
     };
     if (_dueDate != null) {
       data['dueDate'] = _dueDate!.toIso8601String();
@@ -113,64 +146,128 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
                 ),
               ),
               const SizedBox(height: 16),
-              DropdownButtonFormField<String>(
-                value: _priority,
-                decoration: const InputDecoration(
-                  labelText: 'Priority',
-                  prefixIcon: Icon(Icons.priority_high),
-                ),
-                items: Task.priorities
-                    .map((p) => DropdownMenuItem(value: p, child: Text(p)))
-                    .toList(),
-                onChanged: (value) {
-                  if (value != null) setState(() => _priority = value);
-                },
-              ),
-              const SizedBox(height: 16),
-              DropdownButtonFormField<String>(
-                value: _status,
-                decoration: const InputDecoration(
-                  labelText: 'Status',
-                  prefixIcon: Icon(Icons.flag_outlined),
-                ),
-                items: Task.statuses
-                    .map((s) => DropdownMenuItem(value: s, child: Text(s)))
-                    .toList(),
-                onChanged: (value) {
-                  if (value != null) setState(() => _status = value);
-                },
-              ),
-              const SizedBox(height: 16),
-
-              // Due date picker
-              InkWell(
-                onTap: _selectDate,
-                child: InputDecorator(
-                  decoration: const InputDecoration(
-                    labelText: 'Due Date (optional)',
-                    prefixIcon: Icon(Icons.calendar_today),
+              Row(
+                children: [
+                  Expanded(
+                    child: DropdownButtonFormField<String>(
+                      value: _priority,
+                      decoration: const InputDecoration(
+                        labelText: 'Priority',
+                        prefixIcon: Icon(Icons.priority_high),
+                      ),
+                      items: Task.priorities
+                          .map((p) => DropdownMenuItem(value: p, child: Text(p)))
+                          .toList(),
+                      onChanged: (value) {
+                        if (value != null) setState(() => _priority = value);
+                      },
+                    ),
                   ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        _dueDate != null
-                            ? '${_dueDate!.day}/${_dueDate!.month}/${_dueDate!.year}'
-                            : 'Select a date',
-                        style: TextStyle(
-                          color:
-                              _dueDate != null ? null : Colors.grey[500],
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: DropdownButtonFormField<String>(
+                      value: _status,
+                      decoration: const InputDecoration(
+                        labelText: 'Status',
+                        prefixIcon: Icon(Icons.flag_outlined),
+                      ),
+                      items: Task.statuses
+                          .map((s) => DropdownMenuItem(value: s, child: Text(s)))
+                          .toList(),
+                      onChanged: (value) {
+                        if (value != null) setState(() => _status = value);
+                      },
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextFormField(
+                      controller: _hoursController,
+                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      decoration: const InputDecoration(
+                        labelText: 'Estimated Hours',
+                        prefixIcon: Icon(Icons.timer_outlined),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: InkWell(
+                      onTap: _selectDate,
+                      child: InputDecorator(
+                        decoration: const InputDecoration(
+                          labelText: 'Due Date',
+                          prefixIcon: Icon(Icons.calendar_today),
+                        ),
+                        child: Text(
+                          _dueDate != null
+                              ? '${_dueDate!.day}/${_dueDate!.month}/${_dueDate!.year}'
+                              : 'Select date',
+                          style: TextStyle(
+                            color: _dueDate != null ? null : Colors.grey[500],
+                            fontSize: 13,
+                          ),
                         ),
                       ),
-                      if (_dueDate != null)
-                        GestureDetector(
-                          onTap: () => setState(() => _dueDate = null),
-                          child: const Icon(Icons.clear, size: 18),
-                        ),
-                    ],
+                    ),
                   ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _tagsController,
+                decoration: const InputDecoration(
+                  labelText: 'Tags (comma separated, e.g. Frontend, UI/UX)',
+                  prefixIcon: Icon(Icons.tag),
                 ),
               ),
+              const SizedBox(height: 24),
+
+              // Checklist Section
+              const Text(
+                'Checklist / Subtasks',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: _subtaskController,
+                      decoration: const InputDecoration(
+                        hintText: 'Add a subtask step...',
+                        contentPadding: EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                      ),
+                      onSubmitted: (_) => _addSubtask(),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  IconButton.filled(
+                    onPressed: _addSubtask,
+                    icon: const Icon(Icons.add),
+                  ),
+                ],
+              ),
+              if (_subtasks.isNotEmpty) ...[
+                const SizedBox(height: 8),
+                ...List.generate(_subtasks.length, (index) {
+                  return ListTile(
+                    dense: true,
+                    contentPadding: EdgeInsets.zero,
+                    leading: const Icon(Icons.check_box_outline_blank, size: 20),
+                    title: Text(_subtasks[index]),
+                    trailing: IconButton(
+                      icon: const Icon(Icons.close, size: 18),
+                      onPressed: () => _removeSubtask(index),
+                    ),
+                  );
+                }),
+              ],
+
               const SizedBox(height: 32),
               ElevatedButton(
                 onPressed: _isSubmitting ? null : _submit,

@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'dashboard_screen.dart';
 import 'projects_screen.dart';
+import 'activity_screen.dart';
 import 'profile_screen.dart';
 
-/// Home screen with bottom navigation for Dashboard, Projects, and Profile.
+/// Home screen with bottom navigation for Dashboard, Projects, Activity, and Profile.
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -17,6 +18,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final _screens = const [
     DashboardScreen(),
     ProjectsScreen(),
+    ActivityScreen(),
     ProfileScreen(),
   ];
 
@@ -27,6 +29,7 @@ class _HomeScreenState extends State<HomeScreen> {
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
         onTap: (index) => setState(() => _currentIndex = index),
+        type: BottomNavigationBarType.fixed,
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.dashboard_outlined),
@@ -37,6 +40,11 @@ class _HomeScreenState extends State<HomeScreen> {
             icon: Icon(Icons.folder_outlined),
             activeIcon: Icon(Icons.folder),
             label: 'Projects',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.timeline_outlined),
+            activeIcon: Icon(Icons.timeline),
+            label: 'Activity',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.person_outlined),

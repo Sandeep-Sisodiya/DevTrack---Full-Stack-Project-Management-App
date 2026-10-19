@@ -1,3 +1,6 @@
+process.env.JWT_SECRET = process.env.JWT_SECRET || 'test-secret-key-for-testing';
+process.env.NODE_ENV = 'test';
+
 const mongoose = require('mongoose');
 const { MongoMemoryServer } = require('mongodb-memory-server');
 

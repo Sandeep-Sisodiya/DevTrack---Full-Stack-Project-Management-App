@@ -114,6 +114,36 @@ class ApiService {
     }
   }
 
+  /// Perform a PATCH request.
+  Future<dynamic> patch(String endpoint, [Map<String, dynamic>? body]) async {
+    final url = '${ApiConfig.baseUrl}$endpoint';
+    try {
+      final response = await http
+          .patch(
+            Uri.parse(url),
+            headers: _headers,
+            body: body != null ? jsonEncode(body) : null,
+          )
+          .timeout(ApiConfig.timeout);
+      return _handleResponse(response);
+    } on SocketException catch (e) {
+      throw ApiException(
+        'Cannot connect to backend server ($url).\nError: ${e.message}. If using a real phone, please configure your PC\'s Wi-Fi IP in Server Settings.',
+      );
+    } on TimeoutException {
+      throw ApiException(
+        'Server request timed out ($url). Please verify the backend is running.',
+      );
+    } on http.ClientException catch (e) {
+      throw ApiException(
+        'Network error: ${e.message}. Server at $url unreachable.',
+      );
+    } catch (e) {
+      if (e is ApiException) rethrow;
+      throw ApiException('Unexpected network error: $e');
+    }
+  }
+
   /// Perform a DELETE request.
   Future<dynamic> delete(String endpoint) async {
     final url = '${ApiConfig.baseUrl}$endpoint';

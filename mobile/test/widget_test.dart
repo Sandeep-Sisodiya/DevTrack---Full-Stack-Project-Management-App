@@ -4,6 +4,7 @@ import 'package:devtrack/config/theme.dart';
 import 'package:devtrack/models/user.dart';
 import 'package:devtrack/models/project.dart';
 import 'package:devtrack/models/task.dart';
+import 'package:devtrack/models/activity_item.dart';
 import 'package:devtrack/widgets/empty_state.dart';
 import 'package:devtrack/widgets/loading_indicator.dart';
 import 'package:devtrack/widgets/error_display.dart';
@@ -26,12 +27,18 @@ void main() {
       expect(user.email, 'test@example.com');
     });
 
-    test('Project.fromJson creates a valid Project', () {
+    test('Project.fromJson creates a valid Project with enterprise fields', () {
       final json = {
         '_id': '456',
         'name': 'Test Project',
         'description': 'A test project',
-        'status': 'Planning',
+        'status': 'In Progress',
+        'category': 'Architecture',
+        'color': '#10B981',
+        'tags': ['Cloud', 'DevOps'],
+        'totalTasks': 10,
+        'completedTasks': 6,
+        'progressPercentage': 60,
         'user': 'user123',
         'createdAt': '2024-01-01T00:00:00.000Z',
         'updatedAt': '2024-01-01T00:00:00.000Z',
@@ -41,16 +48,26 @@ void main() {
 
       expect(project.id, '456');
       expect(project.name, 'Test Project');
-      expect(project.status, 'Planning');
+      expect(project.status, 'In Progress');
+      expect(project.category, 'Architecture');
+      expect(project.tags, contains('Cloud'));
+      expect(project.progressPercentage, 60);
     });
 
-    test('Task.fromJson creates a valid Task', () {
+    test('Task.fromJson creates a valid Task with subtasks and progress', () {
       final json = {
         '_id': '789',
         'title': 'Test Task',
         'description': 'A test task',
         'priority': 'High',
-        'status': 'Todo',
+        'status': 'In Progress',
+        'estimatedHours': 5.5,
+        'progressPercentage': 50,
+        'tags': ['Frontend', 'UI'],
+        'subtasks': [
+          {'_id': 's1', 'title': 'Design component', 'isCompleted': true},
+          {'_id': 's2', 'title': 'Write widget tests', 'isCompleted': false},
+        ],
         'project': 'proj123',
         'user': 'user123',
         'createdAt': '2024-01-01T00:00:00.000Z',
@@ -62,7 +79,28 @@ void main() {
       expect(task.id, '789');
       expect(task.title, 'Test Task');
       expect(task.priority, 'High');
-      expect(task.status, 'Todo');
+      expect(task.status, 'In Progress');
+      expect(task.estimatedHours, 5.5);
+      expect(task.subtasks.length, 2);
+      expect(task.subtasks.first.isCompleted, true);
+    });
+
+    test('ActivityItem.fromJson parses audit event properly', () {
+      final json = {
+        '_id': 'act123',
+        'action': 'TASK_STATUS_CHANGED',
+        'projectName': 'DevTrack Mobile',
+        'taskTitle': 'OpenAPI Integration',
+        'details': 'Moved task to Completed',
+        'createdAt': '2024-01-01T00:00:00.000Z',
+      };
+
+      final item = ActivityItem.fromJson(json);
+
+      expect(item.id, 'act123');
+      expect(item.action, 'TASK_STATUS_CHANGED');
+      expect(item.projectName, 'DevTrack Mobile');
+      expect(item.details, 'Moved task to Completed');
     });
 
     test('Task.fromJson handles populated project reference', () {

@@ -17,7 +17,9 @@ class _EditProjectScreenState extends State<EditProjectScreen> {
   final _formKey = GlobalKey<FormState>();
   late final TextEditingController _nameController;
   late final TextEditingController _descriptionController;
+  late final TextEditingController _tagsController;
   late String _status;
+  late String _category;
   bool _isSubmitting = false;
 
   @override
@@ -26,13 +28,17 @@ class _EditProjectScreenState extends State<EditProjectScreen> {
     _nameController = TextEditingController(text: widget.project.name);
     _descriptionController =
         TextEditingController(text: widget.project.description);
+    _tagsController =
+        TextEditingController(text: widget.project.tags.join(', '));
     _status = widget.project.status;
+    _category = widget.project.category;
   }
 
   @override
   void dispose() {
     _nameController.dispose();
     _descriptionController.dispose();
+    _tagsController.dispose();
     super.dispose();
   }
 
@@ -41,11 +47,19 @@ class _EditProjectScreenState extends State<EditProjectScreen> {
 
     setState(() => _isSubmitting = true);
 
+    final tags = _tagsController.text
+        .split(',')
+        .map((t) => t.trim())
+        .where((t) => t.isNotEmpty)
+        .toList();
+
     final success = await Provider.of<ProjectProvider>(context, listen: false)
         .updateProject(widget.project.id, {
       'name': _nameController.text.trim(),
       'description': _descriptionController.text.trim(),
       'status': _status,
+      'category': _category,
+      'tags': tags,
     });
 
     if (!mounted) return;
@@ -102,18 +116,48 @@ class _EditProjectScreenState extends State<EditProjectScreen> {
                 ),
               ),
               const SizedBox(height: 16),
-              DropdownButtonFormField<String>(
-                value: _status,
+              Row(
+                children: [
+                  Expanded(
+                    child: DropdownButtonFormField<String>(
+                      value: _status,
+                      decoration: const InputDecoration(
+                        labelText: 'Status',
+                        prefixIcon: Icon(Icons.flag_outlined),
+                      ),
+                      items: Project.statuses
+                          .map((s) => DropdownMenuItem(value: s, child: Text(s)))
+                          .toList(),
+                      onChanged: (value) {
+                        if (value != null) setState(() => _status = value);
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: DropdownButtonFormField<String>(
+                      value: _category,
+                      decoration: const InputDecoration(
+                        labelText: 'Category',
+                        prefixIcon: Icon(Icons.category_outlined),
+                      ),
+                      items: Project.categories
+                          .map((c) => DropdownMenuItem(value: c, child: Text(c)))
+                          .toList(),
+                      onChanged: (value) {
+                        if (value != null) setState(() => _category = value);
+                      },
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _tagsController,
                 decoration: const InputDecoration(
-                  labelText: 'Status',
-                  prefixIcon: Icon(Icons.flag_outlined),
+                  labelText: 'Tags (comma separated)',
+                  prefixIcon: Icon(Icons.tag),
                 ),
-                items: Project.statuses
-                    .map((s) => DropdownMenuItem(value: s, child: Text(s)))
-                    .toList(),
-                onChanged: (value) {
-                  if (value != null) setState(() => _status = value);
-                },
               ),
               const SizedBox(height: 32),
               ElevatedButton(

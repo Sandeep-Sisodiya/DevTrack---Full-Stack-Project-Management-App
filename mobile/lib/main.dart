@@ -9,10 +9,12 @@ import 'services/auth_service.dart';
 import 'services/project_service.dart';
 import 'services/task_service.dart';
 import 'services/dashboard_service.dart';
+import 'services/activity_service.dart';
 import 'providers/auth_provider.dart';
 import 'providers/project_provider.dart';
 import 'providers/task_provider.dart';
 import 'providers/dashboard_provider.dart';
+import 'providers/activity_provider.dart';
 import 'screens/splash_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/register_screen.dart';
@@ -22,6 +24,7 @@ import 'screens/edit_project_screen.dart';
 import 'screens/project_detail_screen.dart';
 import 'screens/create_task_screen.dart';
 import 'screens/edit_task_screen.dart';
+import 'screens/activity_screen.dart';
 
 import 'config/api_config.dart';
 
@@ -36,7 +39,7 @@ class DevTrackApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Create a single shared ApiService instance now
+    // Create a single shared ApiService instance
     final apiService = ApiService();
 
     return MultiProvider(
@@ -52,6 +55,9 @@ class DevTrackApp extends StatelessWidget {
         ),
         ChangeNotifierProvider(
           create: (_) => DashboardProvider(DashboardService(apiService)),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => ActivityProvider(ActivityService(apiService)),
         ),
       ],
       child: MaterialApp(
@@ -76,6 +82,10 @@ class DevTrackApp extends StatelessWidget {
             case '/home':
               return MaterialPageRoute(
                 builder: (_) => const HomeScreen(),
+              );
+            case '/activity':
+              return MaterialPageRoute(
+                builder: (_) => const ActivityScreen(),
               );
             case '/create-project':
               return MaterialPageRoute(
